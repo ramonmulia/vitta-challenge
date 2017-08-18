@@ -7,7 +7,9 @@ const DEFAULT_STATUS_ERROR = 500;
 
 const TerritoriesController = {
   create,
-  get
+  get,
+  getOne,
+  remove
 };
 
 function create(req, res) {
@@ -28,6 +30,28 @@ function get(req, res) {
       }
 
       return res.status(200).send(hal.list(result));
+    })
+    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
+}
+
+function remove(req, res) {
+  const { params } = req;
+
+  tService.delete(params.id)
+    .then(() => res.status(200).send({ error: false }))
+    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: true }));
+}
+
+function getOne(req, res) {
+  const { params } = req;
+
+  tService.getOne(params.id)
+    .then((result) => {
+      if (!result) {
+        return res.status(404).send([]);
+      }
+
+      return res.status(200).send(hal.one(result));
     })
     .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
 }

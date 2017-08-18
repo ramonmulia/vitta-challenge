@@ -1,5 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
-const Logger = require('../logger')('./adapters/adapters.mongo.js');
+const Logger = require('../../logger')('./adapters/adapters.mongo.js');
 const config = require('../config/config.mongo');
 
 const { URI } = config;

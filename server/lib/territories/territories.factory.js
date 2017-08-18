@@ -1,4 +1,5 @@
 const Territory = require('./territories.model');
+const { InvalidTerritory } = require('../../errorsExceptions');
 
 function Factory() {
   this.territories = [];
@@ -6,34 +7,27 @@ function Factory() {
 
 Factory.prototype.createTerritory = createTerritory;
 
-function createTerritory(name, start, end) {
-  const territory = new Territory(name, start, end);
-
-  territory.calculateArea();
-
-  if (territory.invalidArea) {
-    throw new Error('Invalid territory');
-  }
-
-  const isValid = validateTerritories(this.territories, territory);
+function createTerritory(territory) {
+  const isValid = this.territories.length ? validateTerritories(this.territories, territory) : true;
 
   if (!isValid) {
-    throw new Error('Invalid territory');
+    throw new InvalidTerritory();
   }
 
   this.territories.push(territory);
 
-
   return territory;
 }
 
-
 function validateTerritories(territories, t2) {
+  const t2Squares = t2.calculateSquares();
   let isValid = true;
-  for (let i = 0; i < territories.length; i++) {
-    const t1 = territories[i];
 
-    if (!validateTerritory(t1, t2)) {
+  for (let i = 0; i < territories.length; i++) {
+    const { name, start, end } = territories[i];
+    const t1Squares = new Territory(name, start, end).calculateSquares();
+
+    if (!isValidTerritory(t1Squares, t2Squares)) {
       isValid = false;
       break;
     }
@@ -42,13 +36,8 @@ function validateTerritories(territories, t2) {
   return isValid;
 }
 
-function validateTerritory(t1, t2) {
-  if (t2.start.y >= t1.start.y && t2.start.y <= t1.end.y) {
-    if (t2.end.x >= t1.start.x && t2.end.x <= t1.end.x) {
-      return false;
-    }
-  }
-  return true;
+function isValidTerritory(squares1, squares2) {
+  return !squares1.find(el => squares2.find(yEl => (yEl.x === el.x) && (yEl.y === el.y)));
 }
 
 module.exports = Factory;

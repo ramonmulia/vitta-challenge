@@ -8,4 +8,8 @@ router.route('/')
   .post(controller.create)
   .get(controller.get);
 
+router.route('/:id')
+  .delete(controller.remove)
+  .get(controller.getOne);
+
 module.exports = router;
