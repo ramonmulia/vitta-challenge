@@ -13,8 +13,23 @@
       <div class="col-md-12">
         <p><strong>List of territories ordered by most painted area</strong></p>
         <ul>
-          <li ng-repeat="t in mostPaintedArea">Name: {{t.name}} - Painted Area: {{t.painted_area}}</li>
+          <li ng-repeat="t in mostPaintedArea">Territory: {{t.name}} - Painted Area: {{t.painted_area}}</li>
         </ul>
+      </div>
+      <div class="col-md-12">
+        <p><strong>List of last 5 painted squares</strong></p>
+        <ul>
+          <li ng-repeat="s in listOfLastSquares">X: {{s.x}} - Y: {{s.y}}</li>
+        </ul>
+      </div>
+      <div class="col-md-12">
+        <p><strong>List of last 5 errors</strong></p>
+        <ul>
+          <li ng-repeat="e in listOfLast5Errors">{{e.entity.toLowerCase()}}/{{e.error_message}}</li>
+        </ul>
+      </div>
+      <div class="col-md-12">
+        <p><strong>Painted area / total area: </strong>{{paintedAreaTotal}}/{{totalAreaTerritory}}</p>
       </div>
     </div>
 

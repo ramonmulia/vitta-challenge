@@ -9,6 +9,7 @@ const MongoAdapter = require('./server/lib/adapters/adapters.mongo');
 const Logger = require('./server/logger')('./server.js');
 const territories = require('./server/lib/territories/territories.route');
 const squares = require('./server/lib/squares/squares.route');
+const errors = require('./server/lib/errors/errors.route');
 
 const app = express();
 const mongoAdapter = MongoAdapter();
@@ -29,6 +30,7 @@ app.get('/dashboard', (req, res) => res.render('dashboard'));
 
 app.use('/territories', territories);
 app.use('/squares', squares);
+app.use('/errors', errors);
 
 function upServer() {
   if (process.env.NODE_ENV !== 'test') {

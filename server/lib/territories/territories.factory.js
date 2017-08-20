@@ -6,6 +6,7 @@ function Factory() {
 
 Factory.prototype.createTerritory = createTerritory;
 Factory.prototype.updateTerritory = updateTerritory;
+Factory.prototype.removeTerritoryById = removeTerritoryById;
 
 function createTerritory(territory) {
   const isValid = this.territories.length ? validateTerritories(this.territories, territory) : true;
@@ -51,6 +52,10 @@ function updateTerritory(territory) {
   }
 
   return null;
+}
+
+function removeTerritoryById(id) {
+  this.territories = this.territories.filter(t => t.id.toString() !== id.toString());
 }
 
 function isValidTerritory(squares1, squares2) {

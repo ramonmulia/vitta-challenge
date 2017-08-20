@@ -1,13 +1,15 @@
 const Logger = require('../../logger')('./squares/service.js');
-const ErrorsService = require('../errors/errors.service');
 const TerritoriesService = require('../territories/territories.service');
+const MongoAdapter = require('../adapters/adapters.mongo');
 
+const mongoAdapter = MongoAdapter();
 const territoriesService = TerritoriesService();
-const errorsService = ErrorsService();
+const COLLECTION = 'squares';
 
 const SquaresService = {
   get,
-  patch
+  patch,
+  getAll
 };
 
 function patch(x, y) {
@@ -20,6 +22,8 @@ function patch(x, y) {
 
         const { territory } = squareObj;
         territory.painted_squares.push({ x: Number(x), y: Number(y) });
+
+        save(x, y);
 
         return territoriesService.update(territory)
           .then(() => resolve({ painted: true, foundTerritory: true }))
@@ -66,6 +70,25 @@ function get(x, y) {
         return reject({ status: 500, error: 'Error when trying to get square.' });
       });
   });
+}
+
+function getAll(query) {
+  return new Promise((resolve, reject) => {
+    const Model = mongoAdapter.getState().collection(COLLECTION);
+
+    Model.find(query)
+      .toArray((err, result) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(result);
+      });
+  });
+}
+
+function save(x, y) {
+  const Model = mongoAdapter.getState().collection(COLLECTION);
+  Model.insert({ x, y, date: new Date() });
 }
 
 module.exports = function factory() {

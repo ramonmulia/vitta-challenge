@@ -19,7 +19,10 @@ function create(req, res) {
 
   tService.create(body)
     .then(result => res.status(201).send(hal.one(result)))
-    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
+    .catch((err) => {
+      errorsService.save({ entity: 'Territory', error: err.error || DEFAULT_ERROR_MESSAGE });
+      res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE });
+    });
 }
 
 function get(req, res) {
@@ -28,20 +31,27 @@ function get(req, res) {
   tService.get(query)
     .then((result) => {
       if (!result.length) {
+        errorsService.save({ entity: 'Territory', error: 'not-found.' });
         return res.status(404).send({ error: 'not-found' });
       }
 
       return res.status(200).send(hal.list(result, query.withpainted));
     })
-    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
+    .catch((err) => {
+      errorsService.save({ entity: 'Territory', error: err.error || DEFAULT_ERROR_MESSAGE });
+      res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE });
+    });
 }
 
 function remove(req, res) {
   const { params } = req;
 
-  tService.delete(params.id)
+  tService.remove(params.id)
     .then(() => res.status(200).send({ error: false }))
-    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: true }));
+    .catch((err) => {
+      errorsService.save({ entity: 'Territory', error: err.error || DEFAULT_ERROR_MESSAGE });
+      res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: true });
+    });
 }
 
 function getOne(req, res) {
@@ -50,14 +60,13 @@ function getOne(req, res) {
   tService.getOne(params.id)
     .then((result) => {
       if (!result) {
-        errorsService.save({ status: 404, error: 'not-found.' });
+        errorsService.save({ entity: 'Territory', error: 'not-found.' });
         return res.status(404).send({ error: 'not-found' });
       }
-
       return res.status(200).send(hal.one(result, query.withpainted));
     })
     .catch((err) => {
-      errorsService.save({ status: err.status || DEFAULT_STATUS_ERROR, error: err.error || DEFAULT_ERROR_MESSAGE });
+      errorsService.save({ entity: 'Territory', error: err.error || DEFAULT_ERROR_MESSAGE });
       res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE });
     });
 }

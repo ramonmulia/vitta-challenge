@@ -50,6 +50,7 @@ function saveTerritory(territory) {
     const territoryPayload = global.factory.createTerritory(territoryObj);
 
     if (territoryPayload) {
+      delete territoryPayload.id;
       return Model.insert(territoryPayload)
         .then((doc) => {
           territoryPayload.id = doc.ops[0]._id;
@@ -75,11 +76,8 @@ function get(query) {
 
     const Model = mongoAdapter.getState().collection(COLLECTION);
 
-    return Model.find(query)
+    return Model.find(query || {})
       .toArray((err, territories) => {
-        if (territories.length) {
-          return reject({ status: 404, error: 'not-found' });
-        }
         if (err) {
           Logger.error(`Error when trying to get territory. Error: ${err} %j`, err);
           return reject({ status: 500, error: 'Error when trying to get territory.' });
@@ -94,8 +92,11 @@ function remove(id) {
   return new Promise((resolve, reject) => {
     const Model = mongoAdapter.getState().collection(COLLECTION);
 
-    Model.remove({ _id: id })
-      .then(() => resolve())
+    Model.remove({ _id: new ObjectID(id) })
+      .then(() => {
+        global.factory.removeTerritoryById(id);
+        resolve();
+      })
       .catch(() => reject());
   });
 }

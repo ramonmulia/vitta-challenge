@@ -16,7 +16,7 @@ function one(territory, withpainted) {
 
 function formatTerritory(territory, withpainted) {
   const returnObj = {
-    id: territory.id,
+    id: territory.id || territory._id,
     name: territory.name,
     start: territory.start,
     end: territory.end,
