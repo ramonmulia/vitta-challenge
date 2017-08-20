@@ -13,6 +13,10 @@ after(() => {
 });
 
 afterEach((done) => {
+  if (global.factory) {
+    global.factory.territories = [];
+  }
+
   mongoAdapter.wipeDB()
     .then(done)
     .catch(done);

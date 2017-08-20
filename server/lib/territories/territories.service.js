@@ -3,7 +3,7 @@ const schema = require('./territories.schema');
 const Territory = require('./territories.model');
 const Logger = require('../../logger')('./territories/service.js');
 const MongoAdapter = require('../adapters/adapters.mongo');
-const { InvalidTerritory, InvalidArea } = require('../../errorsExceptions');
+const ObjectID = require('mongodb').ObjectID;
 
 const mongoAdapter = MongoAdapter();
 const COLLECTION = 'territories';
@@ -12,12 +12,12 @@ const TerritoriesService = {
   create,
   get,
   getOne,
-  remove
+  remove,
+  update
 };
 
 function create(payload) {
   return new Promise((resolve, reject) => {
-    const Model = mongoAdapter.getState().collection(COLLECTION);
     const valid = tv4.validate(payload, schema);
     const territory = Object.assign({}, payload);
 
@@ -27,43 +27,34 @@ function create(payload) {
 
     if (!global.factory.territories.length) {
       return get({})
-        .then((territories) => {
-          try {
-            const territoryPayload = new Territory(territory.name, territory.start, territory.end);
-
-            for (let i = 0; i < territories.length; i++) {
-              const { name, start, end } = territories[i];
-              global.factory.createTerritory(new Territory(name, start, end));
-            }
-            global.factory.createTerritory(territoryPayload);
-
-            return Model.insert(territoryPayload)
-              .then((doc) => {
-                territoryPayload.id = doc.ops[0]._id;
-
-                return resolve(territoryPayload);
-              })
-              .catch((err) => {
-                Logger.error(`Error when trying to save territory. Error: ${err} %j`, err);
-                return reject({ status: 500, error: 'Error when trying to save territory.' });
-              });
-          } catch (err) {
-            if (err instanceof InvalidTerritory || err instanceof InvalidArea) {
-              return reject({ status: 400, error: 'territory-overlay' });
-            }
-            return reject({ status: 500, error: 'Internal server error' });
-          }
+        .then(() => saveTerritory(territory)
+          .then(resolve)
+          .catch(reject)
+        )
+        .catch((err) => {
+          Logger.error(`Error when trying to save territory. Error: ${err} %j`, err);
+          return reject({ status: 500, error: 'Internal server error' });
         });
     }
 
-    try {
-      const { name, start, end } = territory;
-      const territoryPayload = new Territory(name, start, end);
+    return saveTerritory(territory)
+      .then(resolve)
+      .catch(reject);
+  });
+}
 
-      global.factory.createTerritory(territoryPayload);
-      return Model.insert(territory)
+function saveTerritory(territory) {
+  return new Promise((resolve, reject) => {
+    const Model = mongoAdapter.getState().collection(COLLECTION);
+    const territoryObj = new Territory(territory.name, territory.start, territory.end, null, territory.painted_area, territory.painted_squares);
+    const territoryPayload = global.factory.createTerritory(territoryObj);
+
+    if (territoryPayload) {
+      return Model.insert(territoryPayload)
         .then((doc) => {
           territoryPayload.id = doc.ops[0]._id;
+
+          global.factory.updateTerritory(territoryPayload);
 
           return resolve(territoryPayload);
         })
@@ -71,27 +62,30 @@ function create(payload) {
           Logger.error(`Error when trying to save territory. Error: ${err} %j`, err);
           return reject({ status: 500, error: 'Error when trying to save territory.' });
         });
-    } catch (err) {
-      if (err instanceof InvalidTerritory || err instanceof InvalidArea) {
-        return { status: 400, error: 'territory-overlay' };
-      }
-      return { status: 500, error: 'Internal server error' };
     }
+    return reject({ status: 400, error: 'territory-overlay' });
   });
 }
 
 function get(query) {
   return new Promise((resolve, reject) => {
+    if (global.factory.territories.length) {
+      return resolve(global.factory.territories);
+    }
+
     const Model = mongoAdapter.getState().collection(COLLECTION);
 
-    Model.find(query)
+    return Model.find(query)
       .toArray((err, territories) => {
+        if (territories.length) {
+          return reject({ status: 404, error: 'not-found' });
+        }
         if (err) {
           Logger.error(`Error when trying to get territory. Error: ${err} %j`, err);
           return reject({ status: 500, error: 'Error when trying to get territory.' });
         }
-
-        return resolve(territories);
+        territories.forEach(t => global.factory.createTerritory(new Territory(t.name, t.start, t.end, t._id, t.painted_area, t.painted_squares)));
+        return resolve(global.factory.territories);
       });
   });
 }
@@ -110,7 +104,7 @@ function getOne(id) {
   return new Promise((resolve, reject) => {
     const Model = mongoAdapter.getState().collection(COLLECTION);
 
-    Model.findOne({ _id: id })
+    Model.findOne({ _id: new ObjectID(id) })
       .then(result => resolve(result))
       .catch((err) => {
         Logger.error(`Error when trying to get one territory. Error: ${err} %j`, err);
@@ -119,6 +113,21 @@ function getOne(id) {
   });
 }
 
+function update(territory) {
+  return new Promise((resolve, reject) => {
+    const Model = mongoAdapter.getState().collection(COLLECTION);
+    const territoryObj = global.factory.updateTerritory(territory);
+
+    Model.findOneAndUpdate({ _id: territory.id }, territoryObj, (err, result) => {
+      if (err) {
+        Logger.error(`Error when trying to update territory. Error: ${err} %j`, err);
+        return reject({ status: 500, error: 'Error when trying to update territory.' });
+      }
+
+      return resolve(result.value);
+    });
+  });
+}
 
 
 module.exports = function factory() {

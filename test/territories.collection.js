@@ -7,7 +7,7 @@ const territories = {
     {
       name: 'B',
       start: { x: 60, y: 60 },
-      end: { x: 70, y: 55 }
+      end: { x: 70, y: 65 }
     },
     {
       name: 'C',

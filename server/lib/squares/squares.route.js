@@ -7,4 +7,7 @@ const controller = Controller();
 router.route('/:x/:y')
   .get(controller.get);
 
+router.route('/:x/:y/paint')
+  .patch(controller.patch);
+
 module.exports = router;

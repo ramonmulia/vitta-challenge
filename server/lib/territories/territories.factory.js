@@ -1,21 +1,19 @@
 const Territory = require('./territories.model');
-const { InvalidTerritory } = require('../../errorsExceptions');
 
 function Factory() {
   this.territories = [];
 }
 
 Factory.prototype.createTerritory = createTerritory;
+Factory.prototype.updateTerritory = updateTerritory;
 
 function createTerritory(territory) {
   const isValid = this.territories.length ? validateTerritories(this.territories, territory) : true;
 
   if (!isValid) {
-    throw new InvalidTerritory();
+    return null;
   }
-
   this.territories.push(territory);
-
   return territory;
 }
 
@@ -23,17 +21,36 @@ function validateTerritories(territories, t2) {
   const t2Squares = t2.calculateSquares();
   let isValid = true;
 
-  for (let i = 0; i < territories.length; i++) {
-    const { name, start, end } = territories[i];
-    const t1Squares = new Territory(name, start, end).calculateSquares();
-
+  territories.every((t) => {
+    const t1Squares = new Territory(t.name, t.start, t.end).calculateSquares();
     if (!isValidTerritory(t1Squares, t2Squares)) {
       isValid = false;
-      break;
+      return false;
     }
-  }
+    return true;
+  });
 
   return isValid;
+}
+
+function updateTerritory(territory) {
+  let i = -1;
+  this.territories.every((t, index) => {
+    if (t.id === territory.id) {
+      i = index;
+      return false;
+    }
+    return true;
+  });
+
+  if (i >= 0) {
+    this.territories[i] = territory;
+    this.territories[i].painted_area = territory.painted_squares.length;
+
+    return territory;
+  }
+
+  return null;
 }
 
 function isValidTerritory(squares1, squares2) {

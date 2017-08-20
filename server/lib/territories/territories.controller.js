@@ -1,7 +1,9 @@
 const Service = require('./territories.service');
 const hal = require('./territories.hal');
+const ErrorsService = require('../errors/errors.service');
 
 const tService = Service();
+const errorsService = ErrorsService();
 const DEFAULT_ERROR_MESSAGE = 'Server error';
 const DEFAULT_STATUS_ERROR = 500;
 
@@ -26,10 +28,10 @@ function get(req, res) {
   tService.get(query)
     .then((result) => {
       if (!result.length) {
-        return res.status(404).send([]);
+        return res.status(404).send({ error: 'not-found' });
       }
 
-      return res.status(200).send(hal.list(result));
+      return res.status(200).send(hal.list(result, query.withpainted));
     })
     .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
 }
@@ -43,17 +45,21 @@ function remove(req, res) {
 }
 
 function getOne(req, res) {
-  const { params } = req;
+  const { params, query } = req;
 
   tService.getOne(params.id)
     .then((result) => {
       if (!result) {
-        return res.status(404).send([]);
+        errorsService.save({ status: 404, error: 'not-found.' });
+        return res.status(404).send({ error: 'not-found' });
       }
 
-      return res.status(200).send(hal.one(result));
+      return res.status(200).send(hal.one(result, query.withpainted));
     })
-    .catch(err => res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE }));
+    .catch((err) => {
+      errorsService.save({ status: err.status || DEFAULT_STATUS_ERROR, error: err.error || DEFAULT_ERROR_MESSAGE });
+      res.status(err.status || DEFAULT_STATUS_ERROR).send({ error: err.error || DEFAULT_ERROR_MESSAGE });
+    });
 }
 
 module.exports = function factory() {

@@ -1,8 +1,10 @@
-function Territory(name, start, end, paintedArea) {
+function Territory(name, start, end, id, paintedArea, paintedSquares) {
+  this.id = id;
   this.name = name || '';
   this.start = start || {};
   this.end = end || {};
   this.painted_area = paintedArea || 0;
+  this.painted_squares = paintedSquares || [];
   this.area = this.calculateArea();
 }
 
@@ -14,23 +16,10 @@ function calculateArea() {
     const x = this.end.x - this.start.x;
     const y = this.end.y - this.start.y;
 
-    /*if (!isValidArea(x, y)) {
-      console.log('globa ta de sacanagem ai nao heim');
-      throw new InvalidArea();
-    }*/
-
     return x * y;
   }
   return 0;
 }
-
-/*function isValidArea(x, y) {
-  if ((isNaN(x) || isNaN(y)) || (x <= 0 || y <= 0)) {
-    return false;
-  }
-
-  return true;
-}*/
 
 function calculateSquares() {
   const squares = [];
