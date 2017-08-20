@@ -2,10 +2,10 @@ const exportConfig = require('export-config');
 
 const config = {
   development: {
-    URI: 'mongodb://localhost:27017/vitta-challenge'
+    URI: 'mongodb://mongo:27017/vitta-challenge'
   },
   production: {
-    URI: 'vitta-challenge'
+    URI: 'mongodb://mongo:27017/vitta-challenge'
   },
   test: {
     URI: 'mongodb://localhost:27017/vitta-challenge-test'

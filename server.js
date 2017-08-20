@@ -36,7 +36,17 @@ function upServer() {
   if (process.env.NODE_ENV !== 'test') {
     mongoAdapter.connect()
       .then(() => {
-        app.listen(app.get('port'), () => Logger.info(`Server is running at port: ${app.get('port')}.`));
+        try {
+          app.listen(app.get('port'), (err) => {
+            if (err) {
+              Logger.error('Error when trying to listen: %j', err);
+              process.exit(1);
+            }
+            console.log('Server is running');
+          });
+        } catch (err) {
+          Logger.error('Error when trying to listen: %j', err);
+        }
       })
       .catch((err) => {
         Logger.error('Error when trying to connect with database: %j', err);
