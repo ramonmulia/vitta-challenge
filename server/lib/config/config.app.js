@@ -2,16 +2,16 @@ const exportConfig = require('export-config');
 
 const config = {
   default: {
-    PORT: 3000
+    PORT: 8888
   },
   development: {
-    PORT: 3000
+    PORT: 8888
   },
   staging: {
-    PORT: 3000
+    PORT: 8888
   },
   production: {
-    PORT: process.env.PORT
+    PORT: 8888
   },
   required: ['PORT']
 };

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Vitta challenge",
   "scripts": {
-    "start": "set NODE_ENV=development&&npm install && node ./server",
+    "start": "npm install && node ./server",
     "test": "set NODE_ENV=test&&mocha test --recursive"
   },
   "engines": {
